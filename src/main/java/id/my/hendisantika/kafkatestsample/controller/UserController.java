@@ -2,6 +2,7 @@ package id.my.hendisantika.kafkatestsample.controller;
 
 import com.github.javafaker.Faker;
 import id.my.hendisantika.kafkatestsample.dto.UserDTO;
+import id.my.hendisantika.kafkatestsample.entity.User;
 import id.my.hendisantika.kafkatestsample.kafka.producer.UserKafkaProducer;
 import id.my.hendisantika.kafkatestsample.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -9,11 +10,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Created by IntelliJ IDEA.
@@ -42,5 +46,13 @@ public class UserController {
     @Operation(summary = "Create a user", description = "Creates a random user and write it to Kafka which is consumed by the listener")
     public void generateRandomUser() {
         kafkaProducer.writeToKafka(new UserDTO(UUID.randomUUID().toString(), faker.name().firstName(), faker.name().lastName()));
+    }
+
+    @GetMapping("/{firstName}")
+    @ResponseStatus
+    @Operation(summary = "Create a user", description = "Returns a list of users that matchers the given name")
+    public List<UserDTO> getUsers(@PathVariable(name = "firstName") String name) {
+        List<User> users = userService.getUsers(name);
+        return users.stream().map(user -> new UserDTO(user.getId(), user.getFirstName(), user.getLastName())).collect(Collectors.toList());
     }
 }
