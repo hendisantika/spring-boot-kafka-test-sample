@@ -1,5 +1,7 @@
 package id.my.hendisantika.kafkatestsample.service;
 
+import id.my.hendisantika.kafkatestsample.dto.UserDTO;
+import id.my.hendisantika.kafkatestsample.entity.User;
 import id.my.hendisantika.kafkatestsample.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,4 +22,9 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+
+    public void save(UserDTO user) {
+        log.info("Saving user with id = {}", user.getUuid());
+        userRepository.save(new User(user.getUuid(), user.getFirstName(), user.getLastName()));
+    }
 }
