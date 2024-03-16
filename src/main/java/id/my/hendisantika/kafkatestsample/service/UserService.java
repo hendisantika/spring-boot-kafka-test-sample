@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * Created by IntelliJ IDEA.
  * Project : spring-boot-kafka-test-sample
@@ -26,5 +28,9 @@ public class UserService {
     public void save(UserDTO user) {
         log.info("Saving user with id = {}", user.getUuid());
         userRepository.save(new User(user.getUuid(), user.getFirstName(), user.getLastName()));
+    }
+
+    public List<User> getUsers(String firstName) {
+        return userRepository.getByFirstNameIgnoreCaseOrderByFirstNameAscLastNameAsc(firstName);
     }
 }
