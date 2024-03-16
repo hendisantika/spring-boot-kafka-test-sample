@@ -4,7 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import id.my.hendisantika.kafkatestsample.dto.UserDTO;
 import id.my.hendisantika.kafkatestsample.kafka.producer.UserKafkaProducer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
@@ -19,7 +21,9 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.deser.std.StringDeserializer;
 
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
@@ -89,5 +93,22 @@ class UserKafkaProducerTest {
         assertNotNull(result);
         assertEquals("John", result.getFirstName());
         assertEquals("Wick", result.getLastName());
+    }
+
+    private Map<String, Object> getConsumerProperties() {
+        return Map.of(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, embeddedKafkaBroker.getBrokersAsString(),
+                ConsumerConfig.GROUP_ID_CONFIG, "consumer",
+                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, "true",
+                ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG, "10",
+                ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "60000",
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class,
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    }
+
+    @AfterAll
+    void tearDown() {
+        container.stop();
     }
 }
