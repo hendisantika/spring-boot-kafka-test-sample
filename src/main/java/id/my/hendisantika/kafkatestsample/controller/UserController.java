@@ -17,7 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 /**
  * Created by IntelliJ IDEA.
@@ -39,7 +40,7 @@ public class UserController {
 
     private final UserService userService;
 
-    private final Faker faker;
+    private final Faker faker = new Faker();
 
     @GetMapping("/random")
     @ResponseStatus(HttpStatus.OK)
@@ -53,6 +54,14 @@ public class UserController {
     @Operation(summary = "Create a user", description = "Returns a list of users that matchers the given name")
     public List<UserDTO> getUsers(@PathVariable(name = "firstName") String name) {
         List<User> users = userService.getUsers(name);
-        return users.stream().map(user -> new UserDTO(user.getId(), user.getFirstName(), user.getLastName())).collect(Collectors.toList());
+        return users.stream().map(user -> new UserDTO(user.getId(), user.getFirstName(), user.getLastName())).collect(toList());
+    }
+
+    @GetMapping
+    @ResponseStatus
+    @Operation(summary = "List all users", description = "Returns a list of users")
+    public List<UserDTO> getAllUsers() {
+        List<User> users = userService.getAllUsers();
+        return users.stream().map(user -> new UserDTO(user.getId(), user.getFirstName(), user.getLastName())).collect(toList());
     }
 }

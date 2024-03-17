@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
  * Time: 06:02
  * To change this template use File | Settings | File Templates.
  */
-@Entity()
+@Entity
 @Table(name = "users")
 @Data
 @AllArgsConstructor

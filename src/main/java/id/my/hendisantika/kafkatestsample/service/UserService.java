@@ -33,4 +33,8 @@ public class UserService {
     public List<User> getUsers(String firstName) {
         return userRepository.getByFirstNameIgnoreCaseOrderByFirstNameAscLastNameAsc(firstName);
     }
+
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 }
