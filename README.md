@@ -16,4 +16,4 @@ Swagger UI
 
 Kafdrop UI
 
-![Kafdrop UI](img/KafDrop.png "Kafdrop UI)
+![Kafdrop UI](img/KafDrop.png "Kafdrop UI")
