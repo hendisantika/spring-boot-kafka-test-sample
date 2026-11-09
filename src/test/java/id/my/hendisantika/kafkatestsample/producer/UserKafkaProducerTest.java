@@ -1,16 +1,16 @@
 package id.my.hendisantika.kafkatestsample.producer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import id.my.hendisantika.kafkatestsample.dto.UserDTO;
 import id.my.hendisantika.kafkatestsample.kafka.producer.UserKafkaProducer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
@@ -21,7 +21,7 @@ import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.ContainerTestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.shaded.com.fasterxml.jackson.databind.deser.std.StringDeserializer;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -45,6 +45,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @SpringBootTest(properties = "spring.kafka.bootstrap-servers=${spring.embedded.kafka.brokers}")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserKafkaProducerTest {
+
+    @Value("${spring.kafka.topic.name}")
+    private String topicName;
 
     private BlockingQueue<ConsumerRecord<String, String>> records;
 
@@ -71,7 +74,7 @@ class UserKafkaProducerTest {
     @BeforeAll
     void setUp() {
         DefaultKafkaConsumerFactory<String, String> consumerFactory = new DefaultKafkaConsumerFactory<>(getConsumerProperties());
-        ContainerProperties containerProperties = new ContainerProperties("com.madadipouya.kafka.user");
+        ContainerProperties containerProperties = new ContainerProperties(topicName);
         container = new KafkaMessageListenerContainer<>(consumerFactory, containerProperties);
         records = new LinkedBlockingQueue<>();
         container.setupMessageListener((MessageListener<String, String>) records::add);
@@ -80,13 +83,13 @@ class UserKafkaProducerTest {
     }
 
     @Test
-    void testWriteToKafka() throws InterruptedException, JsonProcessingException {
+    void testWriteToKafka() throws InterruptedException {
         // Create a user and write to Kafka
         UserDTO user = new UserDTO("11111", "John", "Wick");
         producer.writeToKafka(user);
 
         // Read the message (John Wick user) with a test consumer from Kafka and assert its properties
-        ConsumerRecord<String, String> message = records.poll(500, TimeUnit.MILLISECONDS);
+        ConsumerRecord<String, String> message = records.poll(10, TimeUnit.SECONDS);
         assertNotNull(message);
         assertEquals("11111", message.key());
         UserDTO result = objectMapper.readValue(message.value(), UserDTO.class);

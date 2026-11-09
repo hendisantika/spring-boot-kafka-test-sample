@@ -1,7 +1,5 @@
 package id.my.hendisantika.kafkatestsample.consumer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import id.my.hendisantika.kafkatestsample.dto.UserDTO;
 import id.my.hendisantika.kafkatestsample.kafka.consumer.UserKafkaConsumer;
 import id.my.hendisantika.kafkatestsample.service.UserService;
@@ -13,17 +11,18 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.boot.test.mock.mockito.SpyBean;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.test.EmbeddedKafkaBroker;
 import org.springframework.kafka.test.context.EmbeddedKafka;
 import org.springframework.kafka.test.utils.KafkaTestUtils;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -48,23 +47,16 @@ import static org.mockito.Mockito.verify;
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class UserKafkaConsumerTest {
 
-    private final String TOPIC_NAME = "com.madadipouya.kafka.user";
-    @Captor
-    ArgumentCaptor<UserDTO> userArgumentCaptor;
-    @Captor
-    ArgumentCaptor<String> topicArgumentCaptor;
-    @Captor
-    ArgumentCaptor<Integer> partitionArgumentCaptor;
-    @Captor
-    ArgumentCaptor<Long> offsetArgumentCaptor;
+    @Value("${spring.kafka.topic.name}")
+    private String TOPIC_NAME;
     private Producer<String, String> producer;
     @Autowired
     private EmbeddedKafkaBroker embeddedKafkaBroker;
     @Autowired
     private ObjectMapper objectMapper;
-    @SpyBean
+    @MockitoSpyBean
     private UserKafkaConsumer userKafkaConsumer;
-    @MockBean
+    @MockitoBean
     private UserService userService;
 
     @DynamicPropertySource
@@ -83,12 +75,17 @@ class UserKafkaConsumerTest {
     }
 
     @Test
-    void testLogKafkaMessages() throws JsonProcessingException {
+    void testLogKafkaMessages() {
         // Write a message (John Wick user) to Kafka using a test producer
         String uuid = "11111";
         String message = objectMapper.writeValueAsString(new UserDTO(uuid, "John", "Wick"));
         producer.send(new ProducerRecord<>(TOPIC_NAME, 0, uuid, message));
         producer.flush();
+
+        ArgumentCaptor<UserDTO> userArgumentCaptor = ArgumentCaptor.forClass(UserDTO.class);
+        ArgumentCaptor<String> topicArgumentCaptor = ArgumentCaptor.forClass(String.class);
+        ArgumentCaptor<Integer> partitionArgumentCaptor = ArgumentCaptor.forClass(Integer.class);
+        ArgumentCaptor<Long> offsetArgumentCaptor = ArgumentCaptor.forClass(Long.class);
 
         // Read the message and assert its properties
         verify(userKafkaConsumer, timeout(10000).times(1))
