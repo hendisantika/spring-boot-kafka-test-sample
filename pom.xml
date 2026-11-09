@@ -14,7 +14,7 @@
     <name>spring-boot-kafka-test-sample</name>
     <description>spring-boot-kafka-test-sample</description>
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
         <flyway.version>13.12.1</flyway.version>
         <!--        <flyway.url>jdbc:mysql://localhost:3307/test</flyway.url>-->
         <!--        <flyway.user>root</flyway.user>-->
